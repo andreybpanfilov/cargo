@@ -53,7 +53,7 @@ public class ProcessExecutor
      *
      * @param cmd Command to be executed.
      */
-    public void executeAndWait(String cmd)
+    public int executeAndWait(String cmd)
     {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
         Process process = null;
@@ -66,10 +66,12 @@ public class ProcessExecutor
             Future<?> esFuture = executorService.submit(
                     new ProcessOutputReader(process.getErrorStream()));
 
-            process.waitFor();
+            int exitCode = process.waitFor();
 
             osFuture.get();
             esFuture.get();
+
+            return exitCode;
         }
         catch (Exception e)
         {

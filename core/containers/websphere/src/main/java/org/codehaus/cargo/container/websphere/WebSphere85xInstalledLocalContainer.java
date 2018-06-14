@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.tools.ant.types.FilterChain;
 import org.codehaus.cargo.container.ContainerCapability;
+import org.codehaus.cargo.container.ContainerException;
 import org.codehaus.cargo.container.LocalContainer;
 import org.codehaus.cargo.container.ScriptingCapableContainer;
 import org.codehaus.cargo.container.configuration.LocalConfiguration;
@@ -341,7 +342,13 @@ public class WebSphere85xInstalledLocalContainer extends AbstractInstalledLocalC
                     arguments.add(getConfiguration().
                             getPropertyValue(WebSpherePropertySet.ADMIN_PASSWORD));
                 }
-                runWebSphereCommand("wsadmin", arguments.toArray(new String[arguments.size()]));
+
+                int result = runWebSphereCommand("wsadmin", arguments.toArray(new String[arguments.size()]));
+                if (result != 0)
+                {
+                    throw new ContainerException("Failure when invoking CLI script,"
+                            + " wsadmin returned " + result);
+                }
             }
             else
             {
@@ -383,7 +390,7 @@ public class WebSphere85xInstalledLocalContainer extends AbstractInstalledLocalC
      * @param wsCommand Command name.
      * @param arguments Arguments.
      */
-    private void runWebSphereCommand(String wsCommand, String... arguments)
+    private int runWebSphereCommand(String wsCommand, String... arguments)
     {
         StringBuffer command = new StringBuffer();
         command.append(getHome());
@@ -410,7 +417,7 @@ public class WebSphere85xInstalledLocalContainer extends AbstractInstalledLocalC
         getLogger().debug("Executing command: " + command.toString(),
                 this.getClass().getName());
 
-        getProcessExecutor().executeAndWait(command.toString());
+        return getProcessExecutor().executeAndWait(command.toString());
     }
 
     /**
